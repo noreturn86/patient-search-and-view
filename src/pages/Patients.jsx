@@ -72,7 +72,7 @@ export default function Patients() {
     return (
         <div className="flex flex-col items-center w-full">
             {/*back to search button*/}
-            <div className="sticky top-0 w-full bg-white z-10 flex flex-col justify-start">
+            <div className="sticky top-0 w-full bg-gray-300 border-b rounded z-10 flex flex-col justify-start">
                 <button
                     onClick={() => {
                         setPatient(null);
