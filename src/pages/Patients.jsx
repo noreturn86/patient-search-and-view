@@ -21,6 +21,7 @@ export default function Patients() {
     const [allPatients, setAllPatients] = useState([]);
     const [searchTerm, setSearchTerm] = useState("");
     const [patient, setPatient] = useState(null);
+    const [chronicConditions, setChronicConditions] = useState([]);
 
     //////////
     //ids of patients with fake data, highlighted for demonstration purposes
@@ -42,6 +43,22 @@ export default function Patients() {
         const fullName = `${p.firstName} ${p.lastName}`.toLowerCase();
         return fullName.includes(searchTerm.toLowerCase());
     });
+
+    useEffect(() => {
+        if (patient) {
+            axios
+                .get(`http://localhost:8080/chronic_conditions/patient/${patient.id}`)
+                .then((response) => {
+                    setChronicConditions(response.data);
+                })
+                .catch((error) => {
+                    console.error("Could not retrieve chronic conditions list", error);
+                    setChronicConditions([]);
+                })
+        }
+    }, [patient])
+
+
 
     if (!patient) {
         return (
@@ -148,8 +165,7 @@ export default function Patients() {
 
             {/*chronic issues*/}
             <div className="w-full flex flex-col lg:flex-row gap-2 p-1 border rounded-lg bg-gray-50 shadow mt-2">
-                <ChronicIssuePanel />
-                <ChronicIssuePanel />
+                <ChronicIssuePanel conditions={chronicConditions} />
             </div>
 
             {/*test results*/}
