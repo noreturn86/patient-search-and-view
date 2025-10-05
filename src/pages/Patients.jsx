@@ -22,6 +22,13 @@ export default function Patients() {
     const [searchTerm, setSearchTerm] = useState("");
     const [patient, setPatient] = useState(null);
 
+    //////////
+    //ids of patients with fake data, highlighted for demonstration purposes
+    const exampleIds = [41, 44];
+    const examplePatients = allPatients.filter((p) => exampleIds.includes(p.id));
+    //////////
+
+
     useEffect(() => {
         axios
             .get("http://localhost:8080/patients")
@@ -38,7 +45,8 @@ export default function Patients() {
 
     if (!patient) {
         return (
-            <div className="w-full flex flex-col gap-2 items-center justify-center relative">
+            //patient search
+            <div className="w-full flex flex-col gap-4 items-center justify-center relative">
                 <h2>Search patients by name:</h2>
                 <input
                     type="text"
@@ -65,6 +73,23 @@ export default function Patients() {
                         )}
                     </ul>
                 )}
+
+                {exampleIds.length > 0 && (
+                    <div className="w-2/3 border">
+                        <h2 className="p-2">View an example patient:</h2>
+                        {examplePatients.length > 0 && (
+                            examplePatients.map((p) => (
+                                <div 
+                                    className="flex items-center justify-between border p-2 cursor-pointer hover:bg-yellow-200"
+                                    onClick={() => setPatient(p)}
+                                    >
+                                    <p>{p.firstName} {p.lastName}</p>
+                                    <p>{calculateAge(p.dob)} year old {p.sex.toLowerCase()}</p>
+                                </div>
+                            ))
+                        )}
+                    </div>
+                )}
             </div>
         );
     }
@@ -72,7 +97,7 @@ export default function Patients() {
     return (
         <div className="flex flex-col items-center w-full">
             {/*back to search button*/}
-            <div className="sticky top-0 w-full bg-gray-300 border-b rounded z-10 flex flex-col justify-start">
+            <div className="sticky top-0 w-full bg-gray-300 border-b rounded jz-10 flex flex-col justify-start">
                 <button
                     onClick={() => {
                         setPatient(null);
