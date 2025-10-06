@@ -20,8 +20,8 @@ function calculateAge(dobString) {
 export default function Patients() {
     const [allPatients, setAllPatients] = useState([]);
     const [searchTerm, setSearchTerm] = useState("");
+    const [selectedPatient, setSelectedPatient] = useState(null);
     const [patient, setPatient] = useState(null);
-    const [chronicConditions, setChronicConditions] = useState([]);
 
     //////////
     //ids of patients with fake data, highlighted for demonstration purposes
@@ -45,19 +45,15 @@ export default function Patients() {
     });
 
     useEffect(() => {
-        if (patient) {
+        if (selectedPatient) {
             axios
-                .get(`http://localhost:8080/chronic_conditions/patient/${patient.id}`)
+                .get(`http://localhost:8080/patients/${selectedPatient.id}`)
                 .then((response) => {
-                    setChronicConditions(response.data);
+                    setPatient(response.data);
                 })
-                .catch((error) => {
-                    console.error("Could not retrieve chronic conditions list", error);
-                    setChronicConditions([]);
-                })
+                .catch((error) => console.error("Error retrieving data:", error));
         }
-    }, [patient])
-
+    }, [selectedPatient]);
 
 
     if (!patient) {
@@ -80,7 +76,7 @@ export default function Patients() {
                                 <li
                                     key={p.id}
                                     className="px-2 py-1 hover:bg-gray-100 cursor-pointer"
-                                    onClick={() => setPatient(p)}
+                                    onClick={() => setSelectedPatient(p)}
                                 >
                                     {p.firstName} {p.lastName}
                                 </li>
@@ -97,8 +93,9 @@ export default function Patients() {
                         {examplePatients.length > 0 && (
                             examplePatients.map((p) => (
                                 <div 
+                                    key={p.id}
                                     className="flex items-center justify-between border p-2 cursor-pointer hover:bg-yellow-200"
-                                    onClick={() => setPatient(p)}
+                                    onClick={() => setSelectedPatient(p)}
                                     >
                                     <p>{p.firstName} {p.lastName}</p>
                                     <p>{calculateAge(p.dob)} year old {p.sex.toLowerCase()}</p>
@@ -165,7 +162,7 @@ export default function Patients() {
 
             {/*chronic issues*/}
             <div className="w-full flex flex-col lg:flex-row gap-2 p-1 border rounded-lg bg-gray-50 shadow mt-2">
-                <ChronicIssuePanel conditions={chronicConditions} />
+                <ChronicIssuePanel conditions={patient?.chronicConditions || []} />
             </div>
 
             {/*test results*/}
