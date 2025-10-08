@@ -1,6 +1,7 @@
-import ChronicIssuePanel from "../components/ChronicIssuePanel";
 import { useState, useEffect } from "react";
 import axios from "axios";
+import ChronicIssuePanel from "../components/ChronicIssuePanel";
+import LabGraph from "../components/LabGraph";
 
 // get current age from dob
 function calculateAge(dobString) {
@@ -25,7 +26,7 @@ export default function Patients() {
 
     //////////
     //ids of patients with fake data, highlighted for demonstration purposes
-    const exampleIds = [41, 44];
+    const exampleIds = [41, 44, 48, 59];
     const examplePatients = allPatients.filter((p) => exampleIds.includes(p.id));
     //////////
 
@@ -178,11 +179,35 @@ export default function Patients() {
                 <ChronicIssuePanel conditions={patient?.chronicConditions || []} />
             </div>
 
-            {/*test results*/}
+            {/*lab results*/}
             <div className="w-full p-2 border rounded-lg bg-gray-50 shadow mt-2">
-                <h2 className="text-lg font-semibold mb-2">Test Results</h2>
-                <div className="text-gray-700">[Test results]</div>
+                <h2 className="text-lg font-semibold mb-2">Lab Results</h2>
+                <div className="flex w-full border">
+                    <LabGraph points={[{ x: "2025-02-20", y: 7.8}, { x: "2025-10-04", y: 6.7}, { x: "2025-7-01", y: 7.3 }]} xLabel="Date" yLabel="A1c (%)" />
+                    <LabGraph points={[{ x: "2025-02-20", y: 7.8}, { x: "2025-10-04", y: 6.7}, { x: "2025-7-01", y: 7.3 }]} xLabel="Date" yLabel="A1c (%)" />
+                    <LabGraph points={[{ x: "2025-02-20", y: 7.8}, { x: "2025-10-04", y: 6.7}, { x: "2025-7-01", y: 7.3 }]} xLabel="Date" yLabel="A1c (%)" />
+                    <LabGraph points={[{ x: "2025-02-20", y: 7.8}, { x: "2025-10-04", y: 6.7}, { x: "2025-7-01", y: 7.3 }]} xLabel="Date" yLabel="A1c (%)" />
+                </div>
             </div>
+
+            {/*imaging results*/}
+            <div className="w-full p-2 border rounded-lg bg-gray-50 shadow mt-2 overflow-x-auto">
+                <h2 className="text-lg font-semibold mb-2">Imaging Results</h2>
+                <table className="min-w-full border-collapse">
+                    <thead>
+                    <tr className="bg-gray-200">
+                        <th className="border px-4 py-2 text-left">Date</th>
+                        <th className="border px-4 py-2 text-left">Test Type</th>
+                        <th className="border px-4 py-2 text-left">Result Summary</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {/* Data rows will be added here later */}
+                    </tbody>
+                </table>
+            </div>
+
+
 
             {/*consultations*/}
             <div className="w-full p-2 border rounded-lg bg-gray-50 shadow mt-2">
