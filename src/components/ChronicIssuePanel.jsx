@@ -8,7 +8,7 @@ export default function ChronicIssuePanel({conditions}) {
     return (
         <div className="flex h-10">
             {conditions.map((c) => (
-                <div key={c.id} className="flex flex-col items-center space-evenly w-80 border rounded">
+                <div key={c.id} className="flex flex-col items-center space-evenly w-70 border rounded m-1">
                     <p className="text-lg font-semibold">{c.conditionName}</p>
                 </div>
             ))}

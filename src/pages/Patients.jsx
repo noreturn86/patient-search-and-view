@@ -156,12 +156,30 @@ export default function Patients() {
                 </div>
                 <div className="flex-1 p-2 border rounded-lg bg-gray-50 shadow">
                     <h2 className="text-lg font-semibold mb-2">Visit History</h2>
-                    <div className="text-gray-700">[List of visits with date and summary]</div>
+                    <table className="w-full text-left border-collapse">
+                        <thead>
+                            <tr className="bg-gray-200 text-gray-800">
+                                <th className="p-2 border">Date</th>
+                                <th className="p-2 border">Summary</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr className="hover:bg-gray-100">
+                                <td className="p-2 border">2025-09-30</td>
+                                <td className="p-2 border">Annual check-up, no new concerns.</td>
+                            </tr>
+                            <tr className="hover:bg-gray-100">
+                                <td className="p-2 border">2025-07-14</td>
+                                <td className="p-2 border">Follow-up for hypertension; medication adjusted.</td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
+
             </div>
 
             {/*chronic issues*/}
-            <div className="w-full flex flex-col lg:flex-row gap-2 p-1 border rounded-lg bg-gray-50 shadow mt-2">
+            <div className="w-full flex flex-col lg:flex-row gap-2 border rounded-lg bg-gray-50 shadow mt-2">
                 <ChronicIssuePanel conditions={patient?.chronicConditions || []} />
             </div>
 
@@ -174,8 +192,28 @@ export default function Patients() {
             {/*consultations*/}
             <div className="w-full p-2 border rounded-lg bg-gray-50 shadow mt-2">
                 <h2 className="text-lg font-semibold mb-2">Consultations</h2>
-                <div className="text-gray-700">[Communications with consultants]</div>
+                <table className="w-full text-left border-collapse">
+                    <thead>
+                    <tr className="bg-gray-200 text-gray-800">
+                        <th className="p-2 border">Specialist</th>
+                        <th className="p-2 border">Last Visit</th>
+                        <th className="p-2 border">Summary</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+
+                        {patient?.consultantLetters.map((letter) => (
+                            <tr className="hover:bg-gray-100">
+                                <td className="p-2 border">{letter.specialistType}</td>
+                                <td className="p-2 border">{letter.letterDate}</td>
+                                <td className="p-2 border">{letter.summary}</td>
+                            </tr>
+                        ))}
+
+                    </tbody>
+                </table>
             </div>
+
 
             {/*prevention and screening*/}
             <div className="w-full p-2 border rounded-lg bg-gray-50 shadow mt-2">
