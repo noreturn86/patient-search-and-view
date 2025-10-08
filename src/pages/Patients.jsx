@@ -142,19 +142,16 @@ export default function Patients() {
                     <h2 className="text-lg font-semibold mb-2">Patient Summary</h2>
                     <div className="text-gray-700">[Ai-generated patient summary]</div>
                 </div>
-                <div className="flex-1 p-2 border rounded-lg bg-gray-50 shadow">
-                    <h2 className="text-lg font-semibold mb-2">Medications</h2>
-                    <div className="text-gray-700">[Medications list]</div>
-                </div>
             </div>
 
             {/*recent history*/}
             <div className="w-full flex flex-col lg:flex-row gap-2 mt-2">
-                <div className="flex-1 p-2 border rounded-lg bg-gray-50 shadow">
-                    <h2 className="text-lg font-semibold mb-2">Recent Issues</h2>
-                    <div className="text-gray-700">[Ai-generated list of of recent issues]</div>
+                <div className="flex-2 p-2 border rounded-lg bg-gray-50 shadow">
+                    <h2 className="text-lg font-semibold mb-2">Medications</h2>
+                    <div className="text-gray-700">[Medications list]</div>
                 </div>
-                <div className="flex-1 p-2 border rounded-lg bg-gray-50 shadow">
+                
+                <div className="flex-3 p-2 border rounded-lg bg-gray-50 shadow">
                     <h2 className="text-lg font-semibold mb-2">Visit History</h2>
                     <table className="w-full text-left border-collapse">
                         <thead>
