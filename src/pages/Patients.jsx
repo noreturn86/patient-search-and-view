@@ -164,14 +164,12 @@ export default function Patients() {
                             </tr>
                         </thead>
                         <tbody>
-                            <tr className="hover:bg-gray-100">
-                                <td className="p-2 border">2025-09-30</td>
-                                <td className="p-2 border">Annual check-up, no new concerns.</td>
-                            </tr>
-                            <tr className="hover:bg-gray-100">
-                                <td className="p-2 border">2025-07-14</td>
-                                <td className="p-2 border">Follow-up for hypertension; medication adjusted.</td>
-                            </tr>
+                            {patient?.encounters.map((encounter) => (
+                                <tr className="hover:bg-gray-100">
+                                    <td className="p-2 border">{encounter.encounterDate}</td>
+                                    <td className="p-2 border">{encounter.summary}</td>
+                                </tr>
+                            ))}
                         </tbody>
                     </table>
                 </div>
