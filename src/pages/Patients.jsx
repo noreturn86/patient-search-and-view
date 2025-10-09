@@ -23,6 +23,8 @@ export default function Patients() {
     const [searchTerm, setSearchTerm] = useState("");
     const [selectedPatient, setSelectedPatient] = useState(null);
     const [patient, setPatient] = useState(null);
+    const [allPrescriptions, setAllPrescriptions] = useState([]);
+    const [medSearchTerm, setMedSearchTerm] = useState("");
 
     //////////
     //ids of patients with fake data, highlighted for demonstration purposes
@@ -37,13 +39,16 @@ export default function Patients() {
             .then((response) => {
                 setAllPatients(response.data);
             })
-            .catch((error) => console.error("Error retrieving data:", error));
+            .catch((error) => console.error("Error retrieving patient list:", error));
+
+        axios
+            .get("http://localhost:8080/prescription_sentences")
+            .then((response) => {
+                setAllPrescriptions(response.data);
+            })
+            .catch((error) => console.error("Error retrieving prescription sentences:", error));
     }, []);
 
-    const filteredPatients = allPatients.filter((p) => {
-        const fullName = `${p.firstName} ${p.lastName}`.toLowerCase();
-        return fullName.includes(searchTerm.toLowerCase());
-    });
 
     useEffect(() => {
         if (selectedPatient) {
@@ -55,6 +60,50 @@ export default function Patients() {
                 .catch((error) => console.error("Error retrieving data:", error));
         }
     }, [selectedPatient]);
+
+
+
+    const filteredPatients = allPatients.filter((p) => {
+        const fullName = `${p.firstName} ${p.lastName}`.toLowerCase();
+        return fullName.includes(searchTerm.toLowerCase());
+    });
+
+
+    const filteredPrescriptions = allPrescriptions.filter(p => p.scriptText.toLowerCase().includes(medSearchTerm.toLowerCase()));
+
+
+    function handleAddMedication(sentence) {
+        axios
+            .post("http://localhost:8080/medications", {
+                "patient": { "id": patient.id },
+                "prescription": sentence
+            })
+            .then((response) => {
+                setPatient((prev) => ({
+                    ...prev,
+                    medications: [...(prev.medications || []), response.data],
+                }));
+
+                setSearchTerm("");
+            })
+            .catch(error => {
+                console.error("Error adding medication:", error);
+            });
+    }
+
+    function handleRemoveMedication(medicationId) {
+        axios
+            .delete(`http://localhost:8080/medications/${medicationId}`)
+            .then(() => {
+                setPatient((prev) => ({
+                    ...prev,
+                    medications: prev.medications.filter((m) => m.id !== medicationId),
+                }));
+            })
+            .catch((error) => {
+                console.error("Error removing medication:", error);
+            });
+    }
 
 
     if (!patient) {
@@ -137,7 +186,7 @@ export default function Patients() {
                 </div>
             </div>
 
-            {/*ai chart summary and medication list*/}
+            {/*ai chart summary*/}
             <div className="w-full flex flex-col lg:flex-row gap-2 mt-2">
                 <div className="flex-1 p-2 border rounded-lg bg-gray-50 shadow">
                     <h2 className="text-lg font-semibold mb-2">Patient Summary</h2>
@@ -145,13 +194,8 @@ export default function Patients() {
                 </div>
             </div>
 
-            {/*recent history*/}
+            {/*recent history and medication list*/}
             <div className="w-full flex flex-col lg:flex-row gap-2 mt-2">
-                <div className="flex-2 p-2 border rounded-lg bg-gray-50 shadow">
-                    <h2 className="text-lg font-semibold mb-2">Medications</h2>
-                    <div className="text-gray-700">[Medications list]</div>
-                </div>
-                
                 <div className="flex-3 p-2 border rounded-lg bg-gray-50 shadow">
                     <h2 className="text-lg font-semibold mb-2">Visit History</h2>
                     <table className="w-full text-left border-collapse">
@@ -170,6 +214,53 @@ export default function Patients() {
                             ))}
                         </tbody>
                     </table>
+                </div>
+
+                <div className="flex-2 p-2 border rounded-lg bg-gray-50 shadow relative">
+                    <div className="flex items-center space-x-2 mb-2">
+                        <input
+                        type="text"
+                        onChange={(e) => setMedSearchTerm(e.target.value)}
+                        placeholder="Search or add medication..."
+                        className="flex-grow border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        />
+                    </div>
+
+                    <div className="flex flex-col border w-full rounded-lgj">
+                        {patient.medications.map((med) => (
+                            <div
+                                key={med.id}
+                                className="flex items-center justify-between border w-full p-1"
+                            >
+                                <p>{med.prescription}</p>
+                                <button
+                                    onClick={() => handleRemoveMedication(med.id)}
+                                    className="w-6 h-6 flex items-center justify-center bg-red-500 text-white rounded-full hover:bg-red-600 font-bold text-lg shadow-sm"
+                                    title="Remove medication"
+                                    >
+                                    &minus;
+                                </button>
+                            </div>
+                        ))}
+                    </div>
+
+                    {medSearchTerm && (
+                        <ul className="absolute top-10 w-full bg-white border rounded-lg shadow max-h-60 overflow-y-auto">
+                            {filteredPrescriptions.length > 0 ? (
+                                filteredPrescriptions.map((p) => (
+                                    <li
+                                        key={p.id}
+                                        className="px-2 py-1 hover:bg-gray-100 cursor-pointer"
+                                        onClick={() => {handleAddMedication(p.scriptText)}}
+                                    >
+                                        {p.scriptText}
+                                    </li>
+                                ))
+                            ) : (
+                                <li className="px-2 py-1 text-gray-500">No results</li>
+                            )}
+                        </ul>
+                    )}
                 </div>
 
             </div>
