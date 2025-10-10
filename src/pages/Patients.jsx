@@ -2,6 +2,9 @@ import { useState, useEffect } from "react";
 import axios from "axios";
 import ChronicIssuePanel from "../components/ChronicIssuePanel";
 import LabGraph from "../components/LabGraph";
+import ConsultationSummary from "../components/ConsultationSummary";
+import VisitSummary from "../components/VisitSummary";
+import ImagingSummary from "../components/ImagingSummary";
 
 // get current age from dob
 function calculateAge(dobString) {
@@ -25,6 +28,7 @@ export default function Patients() {
     const [patient, setPatient] = useState(null);
     const [allPrescriptions, setAllPrescriptions] = useState([]);
     const [medSearchTerm, setMedSearchTerm] = useState("");
+    const [selectedTab, setSelectedTab] = useState('Visits');
 
     //////////
     //ids of patients with fake data, highlighted for demonstration purposes
@@ -68,9 +72,9 @@ export default function Patients() {
         return fullName.includes(searchTerm.toLowerCase());
     });
 
-
     const filteredPrescriptions = allPrescriptions.filter(p => p.scriptText.toLowerCase().includes(medSearchTerm.toLowerCase()));
 
+    const docSummaryTabs = ['Visits', 'Consultations', 'Imaging', 'Other'];
 
     function handleAddMedication(sentence) {
         axios
@@ -196,26 +200,29 @@ export default function Patients() {
 
             {/*recent history and medication list*/}
             <div className="w-full flex flex-col lg:flex-row gap-2 mt-2">
-                <div className="flex-3 p-2 border rounded-lg bg-gray-50 shadow">
-                    <h2 className="text-lg font-semibold mb-2">Visit History</h2>
-                    <table className="w-full text-left border-collapse">
-                        <thead>
-                            <tr className="bg-gray-200 text-gray-800">
-                                <th className="p-2 border">Date</th>
-                                <th className="p-2 border">Summary</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {patient?.encounters.map((encounter) => (
-                                <tr className="hover:bg-gray-100">
-                                    <td className="p-2 border">{encounter.encounterDate}</td>
-                                    <td className="p-2 border">{encounter.summary}</td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                </div>
 
+                <div className="flex-3 p-2 border rounded-lg bg-gray-50 shadow">
+                    <div className="flex items-center gap-1">
+                        {docSummaryTabs.map((tab) => (
+                            <p 
+                                className={`border border-2 border-b-0 rounded-tl-2xl rounded-tr-2xl p-2 cursor-pointer ${selectedTab === tab ? "border-yellow-500" : "border-black-500"}`}
+                                onClick={() => setSelectedTab(tab)}>{tab}</p>
+                        ))}
+                    </div>
+
+                    {selectedTab === "Visits" && (
+                        <VisitSummary patient={patient} />
+                    )}
+
+                    {selectedTab === "Consultations" && (
+                        <ConsultationSummary patient={patient} />
+                    )}
+
+                    {selectedTab === "Imaging" && (
+                        <ImagingSummary patient={patient} />
+                    )}
+                </div>
+                
                 <div className="flex-2 p-2 border rounded-lg bg-gray-50 shadow relative">
                     <div className="flex items-center space-x-2 mb-2">
                         <input
@@ -280,51 +287,6 @@ export default function Patients() {
                     <LabGraph points={[{ x: "2025-02-20", y: 7.8}, { x: "2025-10-04", y: 6.7}, { x: "2025-7-01", y: 7.3 }]} xLabel="Date" yLabel="A1c (%)" />
                 </div>
             </div>
-
-            {/*imaging results*/}
-            <div className="w-full p-2 border rounded-lg bg-gray-50 shadow mt-2 overflow-x-auto">
-                <h2 className="text-lg font-semibold mb-2">Imaging Results</h2>
-                <table className="min-w-full border-collapse">
-                    <thead>
-                    <tr className="bg-gray-200">
-                        <th className="border px-4 py-2 text-left">Date</th>
-                        <th className="border px-4 py-2 text-left">Test Type</th>
-                        <th className="border px-4 py-2 text-left">Result Summary</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    {/* Data rows will be added here later */}
-                    </tbody>
-                </table>
-            </div>
-
-
-
-            {/*consultations*/}
-            <div className="w-full p-2 border rounded-lg bg-gray-50 shadow mt-2">
-                <h2 className="text-lg font-semibold mb-2">Consultations</h2>
-                <table className="w-full text-left border-collapse">
-                    <thead>
-                    <tr className="bg-gray-200 text-gray-800">
-                        <th className="p-2 border">Specialist</th>
-                        <th className="p-2 border">Last Visit</th>
-                        <th className="p-2 border">Summary</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-
-                        {patient?.consultantLetters.map((letter) => (
-                            <tr className="hover:bg-gray-100">
-                                <td className="p-2 border">{letter.specialistType}</td>
-                                <td className="p-2 border">{letter.letterDate}</td>
-                                <td className="p-2 border">{letter.summary}</td>
-                            </tr>
-                        ))}
-
-                    </tbody>
-                </table>
-            </div>
-
 
             {/*prevention and screening*/}
             <div className="w-full p-2 border rounded-lg bg-gray-50 shadow mt-2">
