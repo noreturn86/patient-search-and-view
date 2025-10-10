@@ -5,6 +5,7 @@ import LabGraph from "../components/LabGraph";
 import ConsultationSummary from "../components/ConsultationSummary";
 import VisitSummary from "../components/VisitSummary";
 import ImagingSummary from "../components/ImagingSummary";
+import OtherTestSummary from "../components/OtherTestSummary";
 
 // get current age from dob
 function calculateAge(dobString) {
@@ -74,7 +75,7 @@ export default function Patients() {
 
     const filteredPrescriptions = allPrescriptions.filter(p => p.scriptText.toLowerCase().includes(medSearchTerm.toLowerCase()));
 
-    const docSummaryTabs = ['Visits', 'Consultations', 'Imaging', 'Other'];
+    const docSummaryTabs = ['Visits', 'Consultations', 'Imaging', 'Other results'];
 
     function handleAddMedication(sentence) {
         axios
@@ -202,13 +203,18 @@ export default function Patients() {
             <div className="w-full flex flex-col lg:flex-row gap-2 mt-2">
 
                 <div className="flex-3 p-2 border rounded-lg bg-gray-50 shadow">
-                    <div className="flex items-center gap-1">
-                        {docSummaryTabs.map((tab) => (
-                            <p 
-                                className={`border border-2 border-b-0 rounded-tl-2xl rounded-tr-2xl p-2 cursor-pointer ${selectedTab === tab ? "border-yellow-500" : "border-black-500"}`}
-                                onClick={() => setSelectedTab(tab)}>{tab}</p>
-                        ))}
+                    <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-1">
+                            {docSummaryTabs.map((tab) => (
+                                <p 
+                                    className={`border border-2 border-b-0 rounded-tl-2xl rounded-tr-2xl p-2 cursor-pointer ${selectedTab === tab ? "border-yellow-500" : "border-black-500"}`}
+                                    onClick={() => setSelectedTab(tab)}>{tab}</p>
+                            ))}
+                        </div>
+
+                        <p className="text-lg font-semibold">{selectedTab}</p>
                     </div>
+                    
 
                     {selectedTab === "Visits" && (
                         <VisitSummary patient={patient} />
@@ -220,6 +226,10 @@ export default function Patients() {
 
                     {selectedTab === "Imaging" && (
                         <ImagingSummary patient={patient} />
+                    )}
+
+                    {selectedTab === "Other results" && (
+                        <OtherTestSummary patient={patient} />
                     )}
                 </div>
                 
@@ -291,7 +301,7 @@ export default function Patients() {
             {/*prevention and screening*/}
             <div className="w-full p-2 border rounded-lg bg-gray-50 shadow mt-2">
                 <h2 className="text-lg font-semibold mb-2">Prevention and Screening</h2>
-                <div className="text-gray-700">[Summary and list of recommendations]</div>
+                <div className="text-gray-700">This module not shown in this demo.</div>
             </div>
         </div>
     );
