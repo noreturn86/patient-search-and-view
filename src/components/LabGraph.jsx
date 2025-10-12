@@ -9,14 +9,14 @@ import {
   ResponsiveContainer
 } from "recharts";
 
-// Utility to format timestamp as readable date
+//utility to format timestamp as readable date
 const formatDate = (timestamp) => {
   const date = new Date(timestamp);
   return date.toLocaleDateString(undefined, { month: "short", day: "numeric" });
 };
 
 function LabGraph({ points, xLabel = "X", yLabel = "Y" }) {
-  // Convert x values (dates) to timestamps for proportional spacing
+  //convert dates to timestamps for proportional spacing
   const processedPoints = points.map((p) => ({
     x: new Date(p.x).getTime(),
     y: p.y

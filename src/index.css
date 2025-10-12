@@ -1,1 +1,14 @@
 @import "tailwindcss";
+
+:root {
+  --primary: #1f2937;        /* dark gray for text */
+  --onPrimary: #ffffff;      /* text on accent/button */
+  --secondary: #4b5563;      /* medium gray for secondary text */
+  --background: #f9fafb;     /* light background */
+  --surface: #ffffff;        /* card/panel background */
+  --accent: #3b82f6;         /* blue accent / buttons */
+  --accent-dark: #2563eb;    /* hover dark blue */
+  --accent-light: #93c5fd;   /* hover light blue */
+  --border: #d1d5db;         /* border color */
+}
+

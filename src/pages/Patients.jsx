@@ -6,6 +6,7 @@ import ConsultationSummary from "../components/ConsultationSummary";
 import VisitSummary from "../components/VisitSummary";
 import ImagingSummary from "../components/ImagingSummary";
 import OtherTestSummary from "../components/OtherTestSummary";
+import LabResultsPanel from "../components/LabResultsPanel";
 
 // get current age from dob
 function calculateAge(dobString) {
@@ -147,11 +148,11 @@ export default function Patients() {
                         <h2 className="p-2">View an example patient:</h2>
                         {examplePatients.length > 0 && (
                             examplePatients.map((p) => (
-                                <div 
+                                <div
                                     key={p.id}
                                     className="flex items-center justify-between border p-2 cursor-pointer hover:bg-yellow-200"
                                     onClick={() => setSelectedPatient(p)}
-                                    >
+                                >
                                     <p>{p.firstName} {p.lastName}</p>
                                     <p>{calculateAge(p.dob)} year old {p.sex.toLowerCase()}</p>
                                 </div>
@@ -199,14 +200,15 @@ export default function Patients() {
                 </div>
             </div>
 
-            {/*recent history and medication list*/}
+            {/*document summaries and medication list*/}
             <div className="w-full flex flex-col lg:flex-row gap-2 mt-2">
 
+                {/*document summaries*/}
                 <div className="flex-3 p-2 border rounded-lg bg-gray-50 shadow">
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-1">
                             {docSummaryTabs.map((tab) => (
-                                <p 
+                                <p
                                     className={`border border-2 border-b-0 rounded-tl-2xl rounded-tr-2xl p-2 cursor-pointer ${selectedTab === tab ? "border-yellow-500" : "border-black-500"}`}
                                     onClick={() => setSelectedTab(tab)}>{tab}</p>
                             ))}
@@ -214,7 +216,7 @@ export default function Patients() {
 
                         <p className="text-lg font-semibold">{selectedTab}</p>
                     </div>
-                    
+
 
                     {selectedTab === "Visits" && (
                         <VisitSummary patient={patient} />
@@ -232,29 +234,31 @@ export default function Patients() {
                         <OtherTestSummary patient={patient} />
                     )}
                 </div>
-                
+
+
+                {/*medication list*/}
                 <div className="flex-2 p-2 border rounded-lg bg-gray-50 shadow relative">
                     <div className="flex items-center space-x-2 mb-2">
                         <input
-                        type="text"
-                        onChange={(e) => setMedSearchTerm(e.target.value)}
-                        placeholder="Search or add medication..."
-                        className="flex-grow border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            type="text"
+                            onChange={(e) => setMedSearchTerm(e.target.value)}
+                            placeholder="Search and add medication..."
+                            className="flex-grow border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                         />
                     </div>
 
-                    <div className="flex flex-col border w-full rounded-lgj">
+                    <div className="flex flex-col w-full rounded-lgj">
                         {patient.medications.map((med) => (
                             <div
                                 key={med.id}
-                                className="flex items-center justify-between border w-full p-1"
+                                className="flex items-center justify-between w-full p-1"
                             >
                                 <p>{med.prescription}</p>
                                 <button
                                     onClick={() => handleRemoveMedication(med.id)}
                                     className="w-6 h-6 flex items-center justify-center bg-red-500 text-white rounded-full hover:bg-red-600 font-bold text-lg shadow-sm"
                                     title="Remove medication"
-                                    >
+                                >
                                     &minus;
                                 </button>
                             </div>
@@ -268,7 +272,7 @@ export default function Patients() {
                                     <li
                                         key={p.id}
                                         className="px-2 py-1 hover:bg-gray-100 cursor-pointer"
-                                        onClick={() => {handleAddMedication(p.scriptText)}}
+                                        onClick={() => { handleAddMedication(p.scriptText) }}
                                     >
                                         {p.scriptText}
                                     </li>
@@ -282,20 +286,12 @@ export default function Patients() {
 
             </div>
 
+            {/*lab results*/}
+            <LabResultsPanel patient={patient} />
+
             {/*chronic issues*/}
             <div className="w-full flex flex-col lg:flex-row gap-2 border rounded-lg bg-gray-50 shadow mt-2">
                 <ChronicIssuePanel conditions={patient?.chronicConditions || []} />
-            </div>
-
-            {/*lab results*/}
-            <div className="w-full p-2 border rounded-lg bg-gray-50 shadow mt-2">
-                <h2 className="text-lg font-semibold mb-2">Lab Results</h2>
-                <div className="flex w-full border">
-                    <LabGraph points={[{ x: "2025-02-20", y: 7.8}, { x: "2025-10-04", y: 6.7}, { x: "2025-7-01", y: 7.3 }]} xLabel="Date" yLabel="A1c (%)" />
-                    <LabGraph points={[{ x: "2025-02-20", y: 7.8}, { x: "2025-10-04", y: 6.7}, { x: "2025-7-01", y: 7.3 }]} xLabel="Date" yLabel="A1c (%)" />
-                    <LabGraph points={[{ x: "2025-02-20", y: 7.8}, { x: "2025-10-04", y: 6.7}, { x: "2025-7-01", y: 7.3 }]} xLabel="Date" yLabel="A1c (%)" />
-                    <LabGraph points={[{ x: "2025-02-20", y: 7.8}, { x: "2025-10-04", y: 6.7}, { x: "2025-7-01", y: 7.3 }]} xLabel="Date" yLabel="A1c (%)" />
-                </div>
             </div>
 
             {/*prevention and screening*/}
