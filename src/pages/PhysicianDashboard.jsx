@@ -1,9 +1,9 @@
 import { useState } from "react";
-import ChronicIssuePanel from "../components/ChronicIssuePanel";
 import Patients from "./Patients";
+import Schedule from "./Schedule";
 
 export default function PhysicianDashboard() {
-  const [activeTab, setActiveTab] = useState("Patients");
+  const [activeTab, setActiveTab] = useState("Schedule");
 
   const tabs = ["Schedule", "Patients", "Documents", "Messages"];
 
@@ -21,6 +21,7 @@ export default function PhysicianDashboard() {
               className={`w-full text-left px-4 py-3 transition ${
                 activeTab === tab ? "bg-gray-700 font-semibold" : ""
               }`}
+              onClick={() => setActiveTab(tab)}
             >
               {tab}
             </button>
@@ -37,8 +38,13 @@ export default function PhysicianDashboard() {
       </div>
 
       {/*main content*/}
-      <div className="flex-1 flex flex-col items-center p-6 overflow-y-auto">
-        <Patients />
+      <div className="flex-1 flex flex-col items-center pl-3 pr-3 overflow-y-auto">
+        {activeTab === "Patients" && (
+          <Patients />
+        )}
+        {activeTab === "Schedule" && (
+          <Schedule />
+        )}
       </div>
     </div>
   );

@@ -6,17 +6,16 @@ import {
   YAxis,
   CartesianGrid,
   Tooltip,
-  ResponsiveContainer
+  ResponsiveContainer,
+  ReferenceLine   // <-- add this
 } from "recharts";
 
-//utility to format timestamp as readable date
 const formatDate = (timestamp) => {
   const date = new Date(timestamp);
   return date.toLocaleDateString(undefined, { month: "short", day: "numeric" });
 };
 
-function LabGraph({ points, xLabel = "X", yLabel = "Y" }) {
-  //convert dates to timestamps for proportional spacing
+function LabGraph({ points, xLabel = "X", yLabel = "Y", cutoff }) {
   const processedPoints = points.map((p) => ({
     x: new Date(p.x).getTime(),
     y: p.y
@@ -30,6 +29,8 @@ function LabGraph({ points, xLabel = "X", yLabel = "Y" }) {
           margin={{ top: 20, right: 30, left: 20, bottom: 40 }}
         >
           <CartesianGrid strokeDasharray="3 3" />
+
+          {/* X axis */}
           <XAxis
             dataKey="x"
             type="number"
@@ -37,12 +38,17 @@ function LabGraph({ points, xLabel = "X", yLabel = "Y" }) {
             tickFormatter={formatDate}
             label={{ value: xLabel, position: "bottom", offset: 0 }}
           />
+
+          {/* Y axis */}
           <YAxis
             type="number"
             domain={[0, "auto"]}
             label={{ value: yLabel, angle: -90, position: "insideLeft" }}
           />
+
           <Tooltip labelFormatter={(val) => formatDate(val)} />
+
+          {/* Main line */}
           <Line
             type="monotone"
             dataKey="y"
@@ -51,6 +57,15 @@ function LabGraph({ points, xLabel = "X", yLabel = "Y" }) {
             activeDot={{ r: 6 }}
             isAnimationActive={false}
           />
+
+          {/* Horizontal cutoff */}
+          {cutoff && (
+            <ReferenceLine
+              y={cutoff}
+              stroke="red"
+              strokeDasharray="4 4"
+            />
+          )}
         </LineChart>
       </ResponsiveContainer>
     </div>

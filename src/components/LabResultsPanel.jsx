@@ -18,8 +18,8 @@ export default function LabResultsPanel({ patient }) {
         <div className="w-full p-2 border rounded-lg bg-gray-50 shadow mt-2">
             <h2 className="text-lg font-semibold mb-2">Lab Results</h2>
             <div className="flex w-full border">
-                <LabGraph points={getLabGraphInfo("A1c", "%")} xLabel="Date" yLabel="A1c(%)" />
-                <LabGraph points={getExamGraphInfo("Weight", "kg")} xLabel="Date" yLabel="Weight(kg)" />
+                <LabGraph points={getLabGraphInfo("A1c", "%")} xLabel="Date" yLabel="A1c(%)" cutoff={6.5} />
+                <LabGraph points={getExamGraphInfo("Weight", "kg")} xLabel="Date" yLabel="Weight(kg)" cutoff={60} />
             </div>
         </div>
     );

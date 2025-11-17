@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
 import ChronicIssuePanel from "../components/ChronicIssuePanel";
-import LabGraph from "../components/LabGraph";
 import ConsultationSummary from "../components/ConsultationSummary";
 import VisitSummary from "../components/VisitSummary";
 import ImagingSummary from "../components/ImagingSummary";
@@ -179,7 +178,7 @@ export default function Patients() {
                 </button>
 
                 {/*ids/contacts*/}
-                <div className="w-full flex flex-col lg:flex-row items-start justify-between text-lg font-semibold p-2 border rounded mt-2 gap-2">
+                <div className="w-full flex flex-col lg:flex-row items-start justify-between text-lg font-semibold p-2 border rounded gap-2">
                     <div>
                         {patient.firstName} {patient.lastName}
                     </div>
@@ -237,7 +236,7 @@ export default function Patients() {
 
 
                 {/*medication list*/}
-                <div className="flex-2 p-2 border rounded-lg bg-gray-50 shadow relative">
+                <div className="flex-2 p-2 border rounded-lg bg-gray-50 shadow">
                     <div className="flex items-center space-x-2 mb-2">
                         <input
                             type="text"
