@@ -77,7 +77,7 @@ export default function Schedule() {
       for (let min = 0; min < 60; min += 15) {
         const hh = hour.toString().padStart(2, "0");
         const mm = min.toString().padStart(2, "0");
-        slots.push(`${hh}:${mm}`);
+        slots.push(`${selectedDate} ${hh}:${mm}`);
       }
     }
     return slots;

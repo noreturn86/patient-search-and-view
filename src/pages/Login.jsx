@@ -1,11 +1,14 @@
 import { useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import { useDispatch } from 'react-redux';
+import { setProvider } from '../features/auth/authSlice.js';
 
 export default function Login() {
   const [form, setForm] = useState({ email: '', password: '' });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const dispatch = useDispatch();
   const navigate = useNavigate();
 
   const navigateToRegister = () => {
@@ -22,17 +25,13 @@ export default function Login() {
     setLoading(true);
 
     try {
-      // Clear any previous session
-      localStorage.removeItem('token');
-      localStorage.removeItem('role');
+      const res = await axios.post('http://localhost:8080/api/login-provider', form, {
+        headers: { 'Content-Type': 'application/json' },
+      });
 
-      const res = await axios.post('http://localhost:8080/api/login-provider', form);
-
-      // Backend should return something like { username: email, token: 'JWT or placeholder' }
-      if (res.data.username) {
-        localStorage.setItem('username', res.data.username);
-        // You could store a role or JWT here if you implement auth
-        localStorage.setItem('role', res.data.role || 'provider');
+      if (res.data.token && res.data.provider) {
+        // Dispatch provider to Redux store
+        dispatch(setProvider({ provider: res.data.provider, token: res.data.token }));
         navigate('/dashboard');
       } else {
         setError('Login failed: Invalid credentials');
