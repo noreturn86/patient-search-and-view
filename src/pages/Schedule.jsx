@@ -1,16 +1,31 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faChevronLeft, faChevronRight, faArrowLeft } from "@fortawesome/free-solid-svg-icons";
+import { useSelector } from 'react-redux';
+import axios from 'axios';
 
 export default function Schedule() {
   const today = new Date();
   const [currentMonth, setCurrentMonth] = useState(today.getMonth());
   const [currentYear, setCurrentYear] = useState(today.getFullYear());
   const [selectedDate, setSelectedDate] = useState(null); // null = calendar view
+  const [activeSlots, setActiveSlots] = useState([]);
+
+  const provider = useSelector((state) => state.auth.provider);
+  const token = useSelector((state) => state.auth.token);
 
   const monthName = new Date(currentYear, currentMonth).toLocaleString("default", {
     month: "long",
   });
+
+
+  useEffect(() => {
+    if (!selectedDate || !provider) return;
+
+    console.log(provider.slots[0].datetime.toString());
+
+  }, [selectedDate, provider]);
+
 
   const prevMonth = () => {
     setCurrentMonth((prev) => {
@@ -70,18 +85,26 @@ export default function Schedule() {
     );
   };
 
-  // Generate appointment slots from 7:00 to 19:00 in 15-min intervals
+
+
+  //generate appointment slots
   const getAppointmentSlots = () => {
     const slots = [];
-    for (let hour = 7; hour < 19; hour++) {
-      for (let min = 0; min < 60; min += 15) {
-        const hh = hour.toString().padStart(2, "0");
-        const mm = min.toString().padStart(2, "0");
-        slots.push(`${selectedDate} ${hh}:${mm}`);
-      }
+
+    //build first slot
+    const startingSlot = new Date(selectedDate);
+    startingSlot.setHours(0, 0, 0, 0);
+
+    for (let i = 0; i < 96; i++) {
+      //clone and add the offset
+      const slot = new Date(startingSlot);
+      slot.setMinutes(slot.getMinutes() + (15 * i));
+      slots.push(slot);
     }
+
     return slots;
   };
+
 
   const onDayClick = (dateObj) => {
     setSelectedDate(dateObj);
@@ -89,6 +112,34 @@ export default function Schedule() {
 
   const calendar = buildCalendar(currentMonth, currentYear);
   const appointmentSlots = selectedDate ? getAppointmentSlots() : [];
+
+
+  const toggleSlot = async (providerId, datetime, token) => {
+    try {
+      const isoDatetime = new Date(datetime).toISOString();
+
+      console.log("Token being sent:", token);
+
+      const response = await axios({
+        method: "post",
+        url: "http://localhost:8080/api/slots/add",
+        params: { providerId, datetime: isoDatetime },
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
+
+      console.log("Slot added:", response.data);
+      return response.data;
+    } catch (error) {
+      console.error(
+        "Error adding slot:",
+        error.response?.status,
+        error.response?.data || error.message
+      );
+    }
+  };
 
   // Calendar View
   if (!selectedDate) {
@@ -134,10 +185,9 @@ export default function Schedule() {
                 onClick={() => onDayClick(cell.date)}
                 className={`
                   flex items-center justify-center aspect-square rounded-lg border cursor-pointer
-                  ${
-                    cell.inMonth
-                      ? "bg-white hover:bg-blue-100 transition-colors shadow-sm"
-                      : "bg-gray-100 text-gray-400"
+                  ${cell.inMonth
+                    ? "bg-white hover:bg-blue-100 transition-colors shadow-sm"
+                    : "bg-gray-100 text-gray-400"
                   }
                   ${todayHighlight ? "bg-blue-200 border-blue-500 font-semibold" : ""}
                 `}
@@ -155,6 +205,7 @@ export default function Schedule() {
   return (
     <div className="w-full flex flex-col items-center p-6 bg-gray-50 min-h-screen">
       <div className="w-3/4 flex items-center mb-4">
+        {/* cancel/return to calendar button */}
         <button
           onClick={() => setSelectedDate(null)}
           className="flex items-center gap-2 px-3 py-2 bg-white shadow rounded hover:bg-gray-100 transition"
@@ -162,6 +213,7 @@ export default function Schedule() {
           <FontAwesomeIcon icon={faArrowLeft} />
           Back to Calendar
         </button>
+        {/* display selectedDate */}
         <h2 className="text-xl font-semibold text-gray-700 ml-4">
           {selectedDate.toLocaleDateString(undefined, {
             weekday: "long",
@@ -172,13 +224,17 @@ export default function Schedule() {
         </h2>
       </div>
 
+      {/* display appointment slots */}
       <div className="grid grid-cols-4 gap-3 w-3/4">
         {appointmentSlots.map((slot, i) => (
           <div
             key={i}
             className="bg-white text-gray-800 rounded-lg shadow flex items-center justify-center py-2 cursor-pointer hover:bg-blue-100 transition"
+            onClick={() => { toggleSlot(provider.id, slot, token) }}
           >
-            {slot}
+            {slot.getHours()}
+            :
+            {slot.getMinutes().toString().padStart(2, "0")}
           </div>
         ))}
       </div>

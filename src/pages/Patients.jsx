@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
-import axios from "axios";
+import { useSelector } from 'react-redux';
+import axios from 'axios';
 import ChronicIssuePanel from "../components/ChronicIssuePanel";
 import ConsultationSummary from "../components/ConsultationSummary";
 import VisitSummary from "../components/VisitSummary";
@@ -23,6 +24,8 @@ function calculateAge(dobString) {
 }
 
 export default function Patients() {
+    const token = useSelector(state => state.auth.token);
+
     const [allPatients, setAllPatients] = useState([]);
     const [searchTerm, setSearchTerm] = useState("");
     const [selectedPatient, setSelectedPatient] = useState(null);
@@ -40,14 +43,18 @@ export default function Patients() {
 
     useEffect(() => {
         axios
-            .get("http://localhost:8080/patients")
+            .get("http://localhost:8080/patients", {
+                headers: { Authorization: `Bearer ${token}` }
+            })
             .then((response) => {
                 setAllPatients(response.data);
             })
             .catch((error) => console.error("Error retrieving patient list:", error));
 
         axios
-            .get("http://localhost:8080/prescription_sentences")
+            .get("http://localhost:8080/prescription_sentences", {
+                headers: { Authorization: `Bearer ${token}` }
+            })
             .then((response) => {
                 setAllPrescriptions(response.data);
             })
@@ -58,7 +65,9 @@ export default function Patients() {
     useEffect(() => {
         if (selectedPatient) {
             axios
-                .get(`http://localhost:8080/patients/${selectedPatient.id}`)
+                .get(`http://localhost:8080/patients/${selectedPatient.id}`, {
+                    headers: { Authorization: `Bearer ${token}` }
+                })
                 .then((response) => {
                     setPatient(response.data);
                 })
@@ -79,10 +88,10 @@ export default function Patients() {
 
     function handleAddMedication(sentence) {
         axios
-            .post("http://localhost:8080/medications", {
-                "patient": { "id": patient.id },
-                "prescription": sentence
-            })
+            .post("http://localhost:8080/medications",
+                { "patient": { "id": patient.id }, "prescription": sentence },
+                { headers: { Authorization: `Bearer ${token}` } }
+            )
             .then((response) => {
                 setPatient((prev) => ({
                     ...prev,
@@ -98,7 +107,8 @@ export default function Patients() {
 
     function handleRemoveMedication(medicationId) {
         axios
-            .delete(`http://localhost:8080/medications/${medicationId}`)
+            .delete(`http://localhost:8080/medications/${medicationId}`,
+                { headers: { Authorization: `Bearer ${token}` } })
             .then(() => {
                 setPatient((prev) => ({
                     ...prev,
