@@ -1,8 +1,10 @@
 import { useState, useEffect } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faChevronLeft, faChevronRight, faArrowLeft } from "@fortawesome/free-solid-svg-icons";
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import axios from 'axios';
+import { setPatient } from "../features/patients/patientsSlice";
+import { setActiveTab } from "../features/tabs/tabsSlice";
 
 export default function Schedule() {
   const today = new Date();
@@ -11,6 +13,7 @@ export default function Schedule() {
   const [selectedDate, setSelectedDate] = useState(null); // null = calendar view
   const [activeSlots, setActiveSlots] = useState([]);
 
+  const dispatch = useDispatch();
   const provider = useSelector((state) => state.auth.provider);
   const token = useSelector((state) => state.auth.token);
   const { allPatients, loading, error } = useSelector((state) => state.patients);
@@ -139,14 +142,49 @@ export default function Schedule() {
 
 
 
-  const toggleSlot = async (providerId, datetime, token) => {
-
-    //check is slot is active (available or booked)
-    const matchingSlot = activeSlots.find(s => s.date.getTime() === datetime.getTime());
+  const toggleSlot = async (providerId, datetime, token, activeSlots, dispatch) => {
+    // Find if this slot already exists
+    const matchingSlot = activeSlots?.find(
+      (s) => new Date(s.date).getTime() === datetime.getTime()
+    );
 
     if (matchingSlot && matchingSlot.patientId) {
+      // Slot is booked — fetch patient details and switch tab
       try {
+        const response = await axios.get(
+          `http://localhost:8080/patients/${matchingSlot.patientId}`,
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
 
+        dispatch(setPatient(response.data));
+        dispatch(setActiveTab("Patients"));
+      } catch (error) {
+        console.error(
+          "Error fetching patient data:",
+          error.response?.status,
+          error.response?.data || error.message
+        );
+      }
+    } else {
+      // Slot is free — add it
+      try {
+        const isoDatetime = datetime.toISOString();
+
+        const response = await axios.post(
+          "http://localhost:8080/api/slots/add",
+          null,
+          {
+            params: { providerId, datetime: isoDatetime },
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+            },
+          }
+        );
+        await loadProviderSlots(providerId, token);
+
+        console.log("Slot added:", response.data);
+        return response.data; // return the new slot info
       } catch (error) {
         console.error(
           "Error adding slot:",
@@ -155,30 +193,8 @@ export default function Schedule() {
         );
       }
     }
-
-    try {
-      const isoDatetime = new Date(datetime).toISOString();
-
-      const response = await axios({
-        method: "post",
-        url: "http://localhost:8080/api/slots/add",
-        params: { providerId, datetime: isoDatetime },
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-      });
-
-      console.log("Slot added:", response.data);
-      return response.data;
-    } catch (error) {
-      console.error(
-        "Error adding slot:",
-        error.response?.status,
-        error.response?.data || error.message
-      );
-    }
   };
+
 
   // Calendar View
   if (!selectedDate) {
@@ -288,7 +304,7 @@ export default function Schedule() {
             <div
               key={i}
               className={`${bgColor} text-gray-800 rounded-lg shadow flex items-center justify-center py-2 cursor-pointer hover:bg-blue-100 transition`}
-              onClick={() => { toggleSlot(provider.id, slot, token) }}
+              onClick={() => { toggleSlot(provider.id, slot, token, activeSlots, dispatch) }}
             >
               {label}
             </div>

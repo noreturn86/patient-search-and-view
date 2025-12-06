@@ -3,7 +3,7 @@ import PhysicianDashboard from "./pages/PhysicianDashboard.jsx";
 import Login from "./pages/Login.jsx";
 import Register from "./pages/Register.jsx";
 import { Provider } from 'react-redux';
-import { store } from './app/store';
+import store from './app/store';
 
 function App() {
   return (

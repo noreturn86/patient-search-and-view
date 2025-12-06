@@ -4,12 +4,14 @@ import Schedule from "./Schedule";
 import { useSelector, useDispatch } from 'react-redux';
 import { clearProvider } from '../features/auth/authSlice';
 import { fetchAllPatients } from '../features/patients/patientsSlice';
+import { setActiveTab } from "../features/tabs/tabsSlice";
 
 export default function PhysicianDashboard() {
-  const [activeTab, setActiveTab] = useState("Schedule");
+  
   const dispatch = useDispatch();
 
   const tabs = ["Schedule", "Patients", "Documents", "Messages", "Billing"];
+  const activeTab = useSelector((state) => state.tabs.activeTab);
   const provider = useSelector((state) => state.auth.provider);
   const token = useSelector((state) => state.auth.token);
 
@@ -43,7 +45,7 @@ export default function PhysicianDashboard() {
               className={`w-full text-left px-4 py-3 transition ${
                 activeTab === tab ? "bg-gray-700 font-semibold" : ""
               }`}
-              onClick={() => setActiveTab(tab)}
+              onClick={() => dispatch(setActiveTab(tab))}
             >
               {tab}
             </button>

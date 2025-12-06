@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import axios from 'axios';
 import ChronicIssuePanel from "../components/ChronicIssuePanel";
 import ConsultationSummary from "../components/ConsultationSummary";
@@ -7,6 +7,7 @@ import VisitSummary from "../components/VisitSummary";
 import ImagingSummary from "../components/ImagingSummary";
 import OtherTestSummary from "../components/OtherTestSummary";
 import LabResultsPanel from "../components/LabResultsPanel";
+import { setPatient, fetchAllPatients } from "../features/patients/patientsSlice";
 
 // get current age from dob
 function calculateAge(dobString) {
@@ -23,12 +24,13 @@ function calculateAge(dobString) {
     return age;
 }
 
-export default function Patients({ selectedPatient = null }) {
+export default function Patients() {
+    const dispatch = useDispatch();
     const token = useSelector(state => state.auth.token);
+    const patient = useSelector((state) => state.patients.selectedPatient);
+    const allPatients = useSelector(state => state.patients.allPatients);
 
-    const [allPatients, setAllPatients] = useState([]);
     const [searchTerm, setSearchTerm] = useState("");
-    const [patient, setPatient] = useState(selectedPatient);
     const [allPrescriptions, setAllPrescriptions] = useState([]);
     const [medSearchTerm, setMedSearchTerm] = useState("");
     const [selectedTab, setSelectedTab] = useState('Visits');
@@ -41,24 +43,22 @@ export default function Patients({ selectedPatient = null }) {
 
 
     useEffect(() => {
-        axios
-            .get("http://localhost:8080/patients", {
-                headers: { Authorization: `Bearer ${token}` }
-            })
-            .then((response) => {
-                setAllPatients(response.data);
-            })
-            .catch((error) => console.error("Error retrieving patient list:", error));
+        if (token) {
+            dispatch(fetchAllPatients(token));
+        }
 
         axios
             .get("http://localhost:8080/prescription_sentences", {
                 headers: { Authorization: `Bearer ${token}` }
             })
             .then((response) => {
-                setAllPrescriptions(response.data);
+                setAllPrescriptions(response.data); // stays local
             })
-            .catch((error) => console.error("Error retrieving prescription sentences:", error));
-    }, []);
+            .catch((error) =>
+                console.error("Error retrieving prescription sentences:", error)
+            );
+    }, [token, dispatch]);
+
 
 
     useEffect(() => {
@@ -68,7 +68,7 @@ export default function Patients({ selectedPatient = null }) {
                     headers: { Authorization: `Bearer ${token}` }
                 })
                 .then((response) => {
-                    setPatient(response.data);
+                    dispatch(setPatient(response.data));
                 })
                 .catch((error) => console.error("Error retrieving data:", error));
         }
@@ -91,9 +91,9 @@ export default function Patients({ selectedPatient = null }) {
                 { headers: { Authorization: `Bearer ${token}` } }
             )
             .then((response) => {
-                setPatient((prev) => ({
-                    ...prev,
-                    medications: [...(prev.medications || []), response.data],
+                dispatch(setPatient({
+                    ...patient,
+                    medications: [...(patient.medications || []), response.data],
                 }));
 
                 setSearchTerm("");
@@ -108,9 +108,9 @@ export default function Patients({ selectedPatient = null }) {
             .delete(`http://localhost:8080/medications/${medicationId}`,
                 { headers: { Authorization: `Bearer ${token}` } })
             .then(() => {
-                setPatient((prev) => ({
-                    ...prev,
-                    medications: prev.medications.filter((m) => m.id !== medicationId),
+                dispatch(setPatient({
+                    ...patient,
+                    medications: [...(patient.medications || []), response.data],
                 }));
             })
             .catch((error) => {
@@ -139,7 +139,7 @@ export default function Patients({ selectedPatient = null }) {
                                 <li
                                     key={p.id}
                                     className="px-2 py-1 hover:bg-gray-100 cursor-pointer"
-                                    onClick={() => setPatient(p)}
+                                    onClick={() => dispatch(setPatient(p))}
                                 >
                                     {p.firstName} {p.lastName}
                                 </li>
@@ -158,7 +158,7 @@ export default function Patients({ selectedPatient = null }) {
                                 <div
                                     key={p.id}
                                     className="flex items-center justify-between border p-2 cursor-pointer hover:bg-yellow-200"
-                                    onClick={() => setPatient(p)}
+                                    onClick={() => dispatch(setPatient(p))}
                                 >
                                     <p>{p.firstName} {p.lastName}</p>
                                     <p>{calculateAge(p.dob)} year old {p.sex.toLowerCase()}</p>
@@ -177,7 +177,7 @@ export default function Patients({ selectedPatient = null }) {
             <div className="sticky top-0 w-full bg-gray-300 border-b rounded jz-10 flex flex-col justify-start">
                 <button
                     onClick={() => {
-                        setPatient(null);
+                        dispatch(setPatient(null));
                         setSearchTerm('');
                     }}
                     className="w-auto px-3 py-2 bg-blue-600 text-white font-semibold rounded hover:bg-blue-500 cursor-pointer"
@@ -255,7 +255,7 @@ export default function Patients({ selectedPatient = null }) {
                     </div>
 
                     <div className="flex flex-col w-full rounded-lgj">
-                        {patient.medications.map((med) => (
+                        {(patient.medications ?? []).map((med) => (
                             <div
                                 key={med.id}
                                 className="flex items-center justify-between w-full p-1"

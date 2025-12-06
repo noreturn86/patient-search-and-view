@@ -11,7 +11,7 @@ export default function VisitSummary({ patient }) {
                     </tr>
                 </thead>
                 <tbody>
-                    {patient?.encounters.map((encounter) => (
+                    {(patient.encounters ?? []).map((encounter) => (
                         <tr className="hover:bg-gray-100">
                             <td className="p-2 border">{encounter.encounterDate}</td>
                             <td className="p-2 border">{encounter.summary}</td>
