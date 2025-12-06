@@ -23,13 +23,12 @@ function calculateAge(dobString) {
     return age;
 }
 
-export default function Patients() {
+export default function Patients({ selectedPatient = null }) {
     const token = useSelector(state => state.auth.token);
 
     const [allPatients, setAllPatients] = useState([]);
     const [searchTerm, setSearchTerm] = useState("");
-    const [selectedPatient, setSelectedPatient] = useState(null);
-    const [patient, setPatient] = useState(null);
+    const [patient, setPatient] = useState(selectedPatient);
     const [allPrescriptions, setAllPrescriptions] = useState([]);
     const [medSearchTerm, setMedSearchTerm] = useState("");
     const [selectedTab, setSelectedTab] = useState('Visits');
@@ -63,9 +62,9 @@ export default function Patients() {
 
 
     useEffect(() => {
-        if (selectedPatient) {
+        if (patient && patient.id) {
             axios
-                .get(`http://localhost:8080/patients/${selectedPatient.id}`, {
+                .get(`http://localhost:8080/patients/${patient.id}`, {
                     headers: { Authorization: `Bearer ${token}` }
                 })
                 .then((response) => {
@@ -73,8 +72,7 @@ export default function Patients() {
                 })
                 .catch((error) => console.error("Error retrieving data:", error));
         }
-    }, [selectedPatient]);
-
+    }, [patient?.id, token]);
 
 
     const filteredPatients = allPatients.filter((p) => {
@@ -141,7 +139,7 @@ export default function Patients() {
                                 <li
                                     key={p.id}
                                     className="px-2 py-1 hover:bg-gray-100 cursor-pointer"
-                                    onClick={() => setSelectedPatient(p)}
+                                    onClick={() => setPatient(p)}
                                 >
                                     {p.firstName} {p.lastName}
                                 </li>
@@ -160,7 +158,7 @@ export default function Patients() {
                                 <div
                                     key={p.id}
                                     className="flex items-center justify-between border p-2 cursor-pointer hover:bg-yellow-200"
-                                    onClick={() => setSelectedPatient(p)}
+                                    onClick={() => setPatient(p)}
                                 >
                                     <p>{p.firstName} {p.lastName}</p>
                                     <p>{calculateAge(p.dob)} year old {p.sex.toLowerCase()}</p>

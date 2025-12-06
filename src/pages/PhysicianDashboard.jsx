@@ -1,15 +1,21 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Patients from "./Patients";
 import Schedule from "./Schedule";
 import { useSelector, useDispatch } from 'react-redux';
 import { clearProvider } from '../features/auth/authSlice';
+import { fetchAllPatients } from '../features/patients/patientsSlice';
 
 export default function PhysicianDashboard() {
   const [activeTab, setActiveTab] = useState("Schedule");
   const dispatch = useDispatch();
 
-  const tabs = ["Schedule", "Patients", "Documents", "Messages"];
+  const tabs = ["Schedule", "Patients", "Documents", "Messages", "Billing"];
   const provider = useSelector((state) => state.auth.provider);
+  const token = useSelector((state) => state.auth.token);
+
+  useEffect(() => {
+    if (token) dispatch(fetchAllPatients(token));
+  }, [token]);
 
   const handleLogout = () => {
     // Clear Redux state

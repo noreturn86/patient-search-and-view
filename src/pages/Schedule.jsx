@@ -13,6 +13,7 @@ export default function Schedule() {
 
   const provider = useSelector((state) => state.auth.provider);
   const token = useSelector((state) => state.auth.token);
+  const { allPatients, loading, error } = useSelector((state) => state.patients);
 
   const monthName = new Date(currentYear, currentMonth).toLocaleString("default", {
     month: "long",
@@ -20,12 +21,34 @@ export default function Schedule() {
 
 
   useEffect(() => {
-    if (!selectedDate || !provider) return;
+    if (!provider) return;
+    loadProviderSlots(provider.id, token);
 
-    console.log(provider.slots[0].datetime.toString());
+  }, [provider]);
 
-  }, [selectedDate, provider]);
 
+  async function loadProviderSlots(providerId, token) {
+    try {
+      const res = await axios.get(
+        `http://localhost:8080/api/slots/provider`,
+        {
+          params: { providerId },
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        }
+      );
+
+      const formattedSlots = res.data.map((slot) => ({
+        date: new Date(slot.datetime),
+        patientId: slot.patientId,
+      }));
+      console.log("formatted slots: ", formattedSlots);
+      setActiveSlots(formattedSlots);
+    } catch (err) {
+      console.error("Error fetching slots:", err);
+    }
+  }
 
   const prevMonth = () => {
     setCurrentMonth((prev) => {
@@ -101,8 +124,8 @@ export default function Schedule() {
       slot.setMinutes(slot.getMinutes() + (15 * i));
       slots.push(slot);
     }
-
-    return slots;
+    console.log("calendar slots: ", slots);
+    return slots; //array of Date objects
   };
 
 
@@ -111,14 +134,30 @@ export default function Schedule() {
   };
 
   const calendar = buildCalendar(currentMonth, currentYear);
-  const appointmentSlots = selectedDate ? getAppointmentSlots() : [];
+  const appointmentSlots = selectedDate ? getAppointmentSlots() : []; //array of date objects
+
+
 
 
   const toggleSlot = async (providerId, datetime, token) => {
+
+    //check is slot is active (available or booked)
+    const matchingSlot = activeSlots.find(s => s.date.getTime() === datetime.getTime());
+
+    if (matchingSlot && matchingSlot.patientId) {
+      try {
+
+      } catch (error) {
+        console.error(
+          "Error adding slot:",
+          error.response?.status,
+          error.response?.data || error.message
+        );
+      }
+    }
+
     try {
       const isoDatetime = new Date(datetime).toISOString();
-
-      console.log("Token being sent:", token);
 
       const response = await axios({
         method: "post",
@@ -220,24 +259,44 @@ export default function Schedule() {
             month: "long",
             day: "numeric",
             year: "numeric",
-          })}
+          })} (Local time)
         </h2>
       </div>
 
       {/* display appointment slots */}
       <div className="grid grid-cols-4 gap-3 w-3/4">
-        {appointmentSlots.map((slot, i) => (
-          <div
-            key={i}
-            className="bg-white text-gray-800 rounded-lg shadow flex items-center justify-center py-2 cursor-pointer hover:bg-blue-100 transition"
-            onClick={() => { toggleSlot(provider.id, slot, token) }}
-          >
-            {slot.getHours()}
-            :
-            {slot.getMinutes().toString().padStart(2, "0")}
-          </div>
-        ))}
+
+        {appointmentSlots.map((slot, i) => {
+          const slotStatus = activeSlots.find(
+            (activeSlot) => activeSlot.date.getTime() === slot.getTime()
+          );
+
+          let bgColor = "bg-white";
+          let label = `${slot.getHours()}:${slot.getMinutes().toString().padStart(2, "0")}`;
+
+          if (slotStatus) {
+            if (slotStatus.patientId) {
+              bgColor = "bg-red-500";
+              const patient = allPatients.find(p => p.id === slotStatus.patientId);
+              label = patient ? `${patient.firstName} ${patient.lastName}` : "Loading...";
+            } else {
+              bgColor = "bg-green-500";
+            }
+          }
+
+          return (
+            <div
+              key={i}
+              className={`${bgColor} text-gray-800 rounded-lg shadow flex items-center justify-center py-2 cursor-pointer hover:bg-blue-100 transition`}
+              onClick={() => { toggleSlot(provider.id, slot, token) }}
+            >
+              {label}
+            </div>
+          );
+        })}
+
       </div>
+
     </div>
   );
 }
