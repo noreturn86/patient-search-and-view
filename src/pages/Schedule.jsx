@@ -3,7 +3,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faChevronLeft, faChevronRight, faArrowLeft } from "@fortawesome/free-solid-svg-icons";
 import { useSelector, useDispatch } from 'react-redux';
 import axios from 'axios';
-import { setPatient } from "../features/patients/patientsSlice";
+import { fetchPatientById } from "../features/patients/patientsSlice";
 import { setActiveTab } from "../features/tabs/tabsSlice";
 
 export default function Schedule() {
@@ -43,10 +43,10 @@ export default function Schedule() {
       );
 
       const formattedSlots = res.data.map((slot) => ({
+        id: slot.id,
         date: new Date(slot.datetime),
         patientId: slot.patientId,
       }));
-      console.log("formatted slots: ", formattedSlots);
       setActiveSlots(formattedSlots);
     } catch (err) {
       console.error("Error fetching slots:", err);
@@ -127,7 +127,6 @@ export default function Schedule() {
       slot.setMinutes(slot.getMinutes() + (15 * i));
       slots.push(slot);
     }
-    console.log("calendar slots: ", slots);
     return slots; //array of Date objects
   };
 
@@ -143,31 +142,26 @@ export default function Schedule() {
 
 
   const toggleSlot = async (providerId, datetime, token, activeSlots, dispatch) => {
-    // Find if this slot already exists
+    // Find if this slot exists in the DB
     const matchingSlot = activeSlots?.find(
       (s) => new Date(s.date).getTime() === datetime.getTime()
     );
 
-    if (matchingSlot && matchingSlot.patientId) {
-      // Slot is booked — fetch patient details and switch tab
-      try {
-        const response = await axios.get(
-          `http://localhost:8080/patients/${matchingSlot.patientId}`,
-          { headers: { Authorization: `Bearer ${token}` } }
-        );
-
-        dispatch(setPatient(response.data));
-        dispatch(setActiveTab("Patients"));
-      } catch (error) {
-        console.error(
-          "Error fetching patient data:",
-          error.response?.status,
-          error.response?.data || error.message
-        );
-      }
-    } else {
-      // Slot is free — add it
-      try {
+    try {
+      if (matchingSlot) {
+        if (matchingSlot.patientId) {
+          //slot is booked — switch tab and setPatient (return full patient info)
+          dispatch(fetchPatientById({ id: matchingSlot.patientId, token }));
+          dispatch(setActiveTab("Patients"));
+        } else {
+          // Slot is active but available — remove it from DB
+          await axios.delete(`http://localhost:8080/api/slots/${matchingSlot.id}`, {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          await loadProviderSlots(providerId, token); // reload slots after removal
+        }
+      } else {
+        // Slot is inactive — add it as available
         const isoDatetime = datetime.toISOString();
 
         const response = await axios.post(
@@ -181,19 +175,18 @@ export default function Schedule() {
             },
           }
         );
-        await loadProviderSlots(providerId, token);
-
-        console.log("Slot added:", response.data);
-        return response.data; // return the new slot info
-      } catch (error) {
-        console.error(
-          "Error adding slot:",
-          error.response?.status,
-          error.response?.data || error.message
-        );
+        await loadProviderSlots(providerId, token); // reload slots after adding
+        return response.data;
       }
+    } catch (error) {
+      console.error(
+        "Error toggling slot:",
+        error.response?.status,
+        error.response?.data || error.message
+      );
     }
   };
+
 
 
   // Calendar View
@@ -282,19 +275,27 @@ export default function Schedule() {
       {/* display appointment slots */}
       <div className="grid grid-cols-4 gap-3 w-3/4">
 
-        {appointmentSlots.map((slot, i) => {
+        {appointmentSlots.map((slot) => {
           const slotStatus = activeSlots.find(
-            (activeSlot) => activeSlot.date.getTime() === slot.getTime()
+            (activeSlot) => new Date(activeSlot.date).getTime() === slot.getTime()
           );
 
           let bgColor = "bg-white";
-          let label = `${slot.getHours()}:${slot.getMinutes().toString().padStart(2, "0")}`;
+          let label = `${slot.getHours()}:${slot.getMinutes()
+            .toString()
+            .padStart(2, "0")}`;
 
           if (slotStatus) {
             if (slotStatus.patientId) {
               bgColor = "bg-red-500";
-              const patient = allPatients.find(p => p.id === slotStatus.patientId);
-              label = patient ? `${patient.firstName} ${patient.lastName}` : "Loading...";
+
+              const patient = allPatients.find(
+                (p) => p.id === slotStatus.patientId
+              );
+
+              label = patient
+                ? `${patient.firstName} ${patient.lastName}`
+                : "Loading...";
             } else {
               bgColor = "bg-green-500";
             }
@@ -302,14 +303,17 @@ export default function Schedule() {
 
           return (
             <div
-              key={i}
+              key={slot.getTime()}
               className={`${bgColor} text-gray-800 rounded-lg shadow flex items-center justify-center py-2 cursor-pointer hover:bg-blue-100 transition`}
-              onClick={() => { toggleSlot(provider.id, slot, token, activeSlots, dispatch) }}
+              onClick={() => {
+                toggleSlot(provider.id, slot, token, activeSlots, dispatch);
+              }}
             >
               {label}
             </div>
           );
         })}
+
 
       </div>
 

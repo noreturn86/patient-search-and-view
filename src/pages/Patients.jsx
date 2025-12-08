@@ -7,7 +7,7 @@ import VisitSummary from "../components/VisitSummary";
 import ImagingSummary from "../components/ImagingSummary";
 import OtherTestSummary from "../components/OtherTestSummary";
 import LabResultsPanel from "../components/LabResultsPanel";
-import { setPatient, fetchAllPatients } from "../features/patients/patientsSlice";
+import { setPatient, fetchAllPatients, fetchPatientById } from "../features/patients/patientsSlice";
 
 // get current age from dob
 function calculateAge(dobString) {
@@ -58,21 +58,6 @@ export default function Patients() {
                 console.error("Error retrieving prescription sentences:", error)
             );
     }, [token, dispatch]);
-
-
-
-    useEffect(() => {
-        if (patient && patient.id) {
-            axios
-                .get(`http://localhost:8080/patients/${patient.id}`, {
-                    headers: { Authorization: `Bearer ${token}` }
-                })
-                .then((response) => {
-                    dispatch(setPatient(response.data));
-                })
-                .catch((error) => console.error("Error retrieving data:", error));
-        }
-    }, [patient?.id, token]);
 
 
     const filteredPatients = allPatients.filter((p) => {
@@ -158,7 +143,7 @@ export default function Patients() {
                                 <div
                                     key={p.id}
                                     className="flex items-center justify-between border p-2 cursor-pointer hover:bg-yellow-200"
-                                    onClick={() => dispatch(setPatient(p))}
+                                    onClick={() => dispatch(fetchPatientById({ id: p.id, token }))}
                                 >
                                     <p>{p.firstName} {p.lastName}</p>
                                     <p>{calculateAge(p.dob)} year old {p.sex.toLowerCase()}</p>
@@ -216,8 +201,12 @@ export default function Patients() {
                         <div className="flex items-center gap-1">
                             {docSummaryTabs.map((tab) => (
                                 <p
+                                    key={tab}
                                     className={`border border-2 border-b-0 rounded-tl-2xl rounded-tr-2xl p-2 cursor-pointer ${selectedTab === tab ? "border-yellow-500" : "border-black-500"}`}
-                                    onClick={() => setSelectedTab(tab)}>{tab}</p>
+                                    onClick={() => setSelectedTab(tab)}
+                                >
+                                    {tab}
+                                </p>
                             ))}
                         </div>
 

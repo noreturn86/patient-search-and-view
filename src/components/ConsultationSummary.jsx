@@ -15,12 +15,13 @@ export default function ConsultationSummary({ patient }) {
             <tbody>
 
                 {patient?.consultantLetters.map((letter) => (
-                    <tr className="hover:bg-gray-100">
+                    <tr key={letter.id} className="hover:bg-gray-100">
                         <td className="p-2 border">{letter.specialistType}</td>
                         <td className="p-2 border">{letter.letterDate}</td>
                         <td className="p-2 border">{letter.summary}</td>
                     </tr>
                 ))}
+
 
             </tbody>
         </table>

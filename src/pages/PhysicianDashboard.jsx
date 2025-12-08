@@ -12,7 +12,6 @@ export default function PhysicianDashboard() {
 
   const tabs = ["Schedule", "Patients", "Documents", "Messages", "Billing"];
   const activeTab = useSelector((state) => state.tabs.activeTab);
-  const provider = useSelector((state) => state.auth.provider);
   const token = useSelector((state) => state.auth.token);
 
   useEffect(() => {
